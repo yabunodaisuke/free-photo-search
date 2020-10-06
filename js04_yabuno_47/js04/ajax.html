@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<!-- css -->
+<link rel="stylesheet" href="style.css">
+<title></title>
+</head>
+
+<body>
+  <h1>Free Photo Search(無料画像検索）</h1>
+
+  <!-- 音声検索   Google （webspeech api)-->
+<form action="https://www.google.com/search">
+<input type="hidden" id="q" name="q"></form>
+
+<!-- pixabay用 -->
+<form name="search">
+    <input name="key" type="text" size="30"placeholder="文字を入力してください" class="textbox">
+    
+    <!-- <input name="btn" type="submit" value="ボタン"> -->
+    <button data-hover="click me" name="btn" type="submit" value=""><div>画像検索はこちら！</div></button>
+    
+    <!-- 音声検索用ボタン -->
+    <button id="voicebtn" type="button" value=""><img src="images/microphone.png" alt="" style="width: 20px;">音声検索</button>
+  </form>
+  
+  <!-- ここに画像の一覧を表示する -->
+  <div id="result"></div>
+<script>
+    // //axiosでAjax送信
+    // axios.get('sample.json').then(function (response) {
+    //     console.log(response.data);//通信OK
+    //     document.querySelector("#status").innerHTML="ajax.php/通信OK";
+    // }).catch(function (error) {
+    //     console.log(error);//通信Error
+    // }).then(function () {
+    //     console.log("Last");//通信OK/Error後に処理を必ずさせたい場合
+    // });
+                                            
+// /フォームのボタンがクリックされたら、またはエンターキーを押すと
+document.search.btn.addEventListener('click', function(e) {
+    e.preventDefault();  //画面の更新をキャンセル
+  
+    //JSONデータの取得処理（ fetch() ）
+    fetch( createURL(document.search.key.value) )
+.then( function( data ) {
+    return data.json();  //JSONデータとして取得
+})
+.then( function( json ) {
+    createImage( json );
+})
+
+})
+
+//リクエスト用のURLを生成する
+function createURL( value ) {
+
+var API_KEY = 'api入力箇所';  //←api入力
+var baseUrl = 'https://pixabay.com/api/?key=' + API_KEY;
+var keyword = '&q=' + encodeURIComponent( value );
+var option = '&orientation=horizontal&per_page=40';
+
+var URL = baseUrl + keyword + option;
+
+return URL;
+
+}
+
+//画像のJSONデータを画面に表示する
+function createImage( json ) {
+  var result = document.getElementById('result');
+      result.innerHTML = '';
+
+  if( json.totalHits > 0 ) {
+    json.hits.forEach( function( value ) {
+
+
+var img = document.createElement('img');
+var a = document.createElement('a');
+
+
+a.href = value.pageURL;  //ダウンロード用のURL
+a.target = '_blank';
+img.src = value.previewURL;  //プレビュー用のURL
+
+
+a.appendChild( img );
+result.appendChild( a );  //divタグ内に画像を配置
+
+})
+         
+  }
+  else {
+    alert('該当する写真がありません');
+  }
+}
+
+// 音声認識のための準備
+SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
+  var recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.onresult = (event) => {
+    if(event.results.length > 0) {
+      q.value = event.results[0][0].transcript;
+      q.form.submit();
+    }
+  }
+  // voiceボタンを押すと音声検索
+  voicebtn.onclick = () => {
+    recognition.start();
+  }
+</script>
+</body>
+</html>
